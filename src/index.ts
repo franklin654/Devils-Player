@@ -16,7 +16,7 @@ import {
 } from 'discord.js';
 import { Player } from 'discord-player';
 import { DefaultExtractors } from '@discord-player/extractor';
-import { error } from 'console';
+import {registerPlayerEvents} from './playerEvent'
 
 
 const client = new Client({
@@ -46,6 +46,7 @@ player.extractors.loadMulti(DefaultExtractors)
 })
 .catch(error => console.error(error));
 
+// Creating a collection to store commands
 client.commands = new Collection();
 
 // Parsing and Adding commands to the client
@@ -66,38 +67,41 @@ for (const folder of commandFolders) {
     }
 }
 
-// Printing the confirmation
-client.once(Events.ClientReady, (readyClient) => {
-    console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
-
-// Handling interactions and commands.
-client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-    if (!interaction.isChatInputCommand()) return;
-    const command = interaction.client.commands.get(interaction.commandName);
-
-    if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`);
-        return;
-    }
-
-    try {
-        await command.execute(interaction as ChatInputCommandInteraction);
-    } catch (error) {
-        console.error(error);
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({
-                content: 'There was an error while executing this command!',
-                flags: MessageFlags.Ephemeral,
-            });
+// Registering Client Events
+const clientEventFolder = path.join(__dirname, 'events', 'client');
+const clientEventFiles = fs.readdirSync(clientEventFolder).filter(file => file.endsWith('.js'));
+for (const file of clientEventFiles) {
+        const filePath = path.join(clientEventFolder, file);
+        const event = require(filePath);
+        if ('eventName' in event && 'eventHandler' in event) {
+            if (event.once)
+                client.once(event.eventName, event.eventHandler);
+            else
+                client.on(event.eventName, event.eventHandler);
         } else {
-            await interaction.reply({
-                content: 'There was an error while executing this command!',
-                flags: MessageFlags.Ephemeral
-            });
+            console.log(`[WARNING] The event at ${filePath} is missing a required "eventName" or "eventHandler" property`);
         }
     }
-});
+
+// Registering the Player Events
+registerPlayerEvents(player);
+
+const playerEventFolder = path.join(__dirname, 'events', 'player');
+if (!fs.existsSync(playerEventFolder))
+    fs.mkdirSync(playerEventFolder, {
+        recursive: true,
+    });
+const playerEventFiles = fs.readdirSync(playerEventFolder).filter(file => file.endsWith('.js'));
+for (const file of playerEventFiles) {
+    const filePath = path.join(playerEventFolder, file);
+    const event = require(filePath);
+    if ('eventName' in event && 'eventHandler' in event) {
+        if (event.once)
+            player.events.once(event.eventName, event.eventHandler);
+        else
+            player.events.on(event.eventName, event.eventHandler);
+    }
+}
 
 // starting the client
 client.login(process.env.BOT_TOKEN);
