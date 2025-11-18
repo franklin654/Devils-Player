@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Events, Interaction, MessageFlags } from "discord.js";
+import { BaseInteraction, ChatInputCommandInteraction, Events, Interaction, MessageFlags } from "discord.js";
 import { useMainPlayer } from "discord-player";
 
 module.exports = {
@@ -19,6 +19,7 @@ module.exports = {
             }
             await player.context.provide(data, () => command.execute(interaction as ChatInputCommandInteraction));
         } catch (error) {
+            console.error('Printing the Client Interaction event error');
             console.error(error);
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp({

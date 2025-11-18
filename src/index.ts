@@ -16,6 +16,7 @@ import {
 } from 'discord.js';
 import { Player } from 'discord-player';
 import { DefaultExtractors } from '@discord-player/extractor';
+import { generateOauthTokens, YoutubeiExtractor } from 'discord-player-youtubei';
 import {registerPlayerEvents} from './playerEvent'
 
 
@@ -45,6 +46,13 @@ player.extractors.loadMulti(DefaultExtractors)
         console.log('Player initialization failed');
 })
 .catch(error => console.error(error));
+player.extractors.register(YoutubeiExtractor, {
+    authentication: process.env.YT_TOKEN!,
+    generateWithPoToken: true,
+    streamOptions: {
+        useClient: "WEB"
+    }
+});
 
 // Creating a collection to store commands
 client.commands = new Collection();
@@ -79,7 +87,7 @@ for (const file of clientEventFiles) {
             else
                 client.on(event.eventName, event.eventHandler);
         } else {
-            console.log(`[WARNING] The event at ${filePath} is missing a required "eventName" or "eventHandler" property`);
+            console.log(`[WARNING] The client event at ${filePath} is missing a required "eventName" or "eventHandler" property`);
         }
     }
 
@@ -100,6 +108,8 @@ for (const file of playerEventFiles) {
             player.events.once(event.eventName, event.eventHandler);
         else
             player.events.on(event.eventName, event.eventHandler);
+    } else {
+        console.log(`[WARNING] The player event at ${filePath} is missing a required "eventName" or "eventHandler" property`)
     }
 }
 
