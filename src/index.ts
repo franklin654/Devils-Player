@@ -45,16 +45,7 @@ player.extractors.loadMulti(DefaultExtractors)
     else
         console.log('Player initialization failed');
 })
-.catch(error => console.error(error));
-
-// Registering YoutubeiExtractor
-// player.extractors.register(YoutubeiExtractor, {
-//     authentication: process.env.YT_TOKEN!,
-//     generateWithPoToken: true,
-//     streamOptions: {
-//         useClient: "WEB"
-//     }
-// });
+.catch(error => console.error(error)); 
 
 // Creating a collection to store commands
 client.commands = new Collection();

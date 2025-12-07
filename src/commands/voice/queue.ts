@@ -6,11 +6,11 @@ module.exports = {
         .setName('queue')
         .setDescription('Display the current queue'),
     async execute(interaction: ChatInputCommandInteraction) {
-        interaction.deferReply();
+        await interaction.deferReply();
         const queue = useQueue();
 
         if (!queue) {
-            return interaction.reply(
+            return interaction.editReply(
                 `This server does not have an active player session.`,
             );
         }
@@ -28,6 +28,6 @@ module.exports = {
             ),
         ].join('\n');
 
-        return interaction.reply(message);
+        return interaction.editReply(message);
     }
 }

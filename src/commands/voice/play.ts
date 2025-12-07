@@ -41,7 +41,16 @@ exports.execute = async (interaction: ChatInputCommandInteraction) => {
 
     await interaction.deferReply()
     const result = await player.play(voiceChannel, query, {
-        nodeOptions: {metadata: {channel: interaction.channel},}
+        nodeOptions: {
+            metadata: {channel: interaction.channel},
+            bufferingTimeout: 15000, //How long the player should attempt buffering before giving up
+            leaveOnStop: true, //If player should leave the voice channel after user stops the player
+            leaveOnStopCooldown: 3000, //Cooldown in ms
+            leaveOnEnd: true, //If player should leave after the whole queue is over
+            leaveOnEndCooldown: 15000, //Cooldown in ms
+            leaveOnEmpty: true, //If the player should leave when the voice channel is empty
+            leaveOnEmptyCooldown: 300000, //Cooldown in ms
+        }
     });
     return interaction.editReply(
         `${result.track.title} has been added to the queue!`,
